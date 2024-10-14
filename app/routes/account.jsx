@@ -19,7 +19,10 @@ export async function loader({context}) {
   }
 
   return json(
-    {customer: data.customer},
+    {
+      customer: data.customer,
+      accessToken: context.customerAccount.getAccessToken(),
+    },
     {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -30,11 +33,11 @@ export async function loader({context}) {
 
 export default function AccountLayout() {
   /** @type {LoaderReturnData} */
-  const {customer} = useLoaderData();
+  const {customer, accessToken} = useLoaderData();
 
   const heading = customer
     ? customer.firstName
-      ? `Welcome, ${customer.firstName}`
+      ? `Welcome, ${customer.firstName} customerAccessToken ${accessToken}`
       : `Welcome to your account.`
     : 'Account Details';
 
