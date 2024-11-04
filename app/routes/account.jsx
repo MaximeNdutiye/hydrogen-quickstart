@@ -70,6 +70,10 @@ export default function AccountLayout() {
   /** @type {LoaderReturnData} */
   const {customer, accessToken, storefrontCustomerAccessToken, checkoutUrl} =
     useLoaderData();
+  const clientId = process.env.CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET;
+
+  const credentials = btoa(`${clientId}:${clientSecret}`);
 
   const heading = customer
     ? customer.firstName
@@ -114,6 +118,18 @@ export default function AccountLayout() {
         }}
       >
         {checkoutUrl}
+      </pre>
+
+      <pre>Authorization</pre>
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          maxWidth: '50%',
+          overflowWrap: 'break-word',
+        }}
+      >
+        {credentials}
       </pre>
       <br />
       <AccountMenu />
