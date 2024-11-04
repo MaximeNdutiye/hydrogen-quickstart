@@ -1,6 +1,10 @@
 import {json} from '@shopify/remix-oxygen';
 import {Form, NavLink, Outlet, useLoaderData} from '@remix-run/react';
-import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
+import {
+  CUSTOMER_DETAILS_QUERY,
+  UPDATE_BUYER_IDENTITY,
+  CREATE_STOREFRONT_TOKEN,
+} from '~/graphql/customer-account/CustomerDetailsQuery';
 
 export function shouldRevalidate() {
   return true;
@@ -18,10 +22,41 @@ export async function loader({context}) {
     throw new Error('Customer not found');
   }
 
+  const storefront_token_data = await context.customerAccount.mutate(
+    CREATE_STOREFRONT_TOKEN,
+  );
+
+  const storefrontCustomerAccessToken =
+    storefront_token_data.data.storefrontCustomerAccessTokenCreate
+      .customerAccessToken;
+
+  let update_buyer_identity_result = await context.storefront.mutate(
+    UPDATE_BUYER_IDENTITY,
+    {
+      variables: {
+        buyerIdentity: {
+          customerAccessToken: storefrontCustomerAccessToken,
+        },
+        cartId: context.cart.getCartId(),
+      },
+    },
+  );
+
+  console.log('CREATE STOREFRONT CAT', JSON.stringify(storefront_token_data));
+
+  console.log(
+    'UPDATE BUYER IDENTIY',
+    JSON.stringify(update_buyer_identity_result),
+  );
+
   return json(
     {
       customer: data.customer,
-      accessToken: context.customerAccount.getAccessToken(),
+      accessToken: await context.customerAccount.getAccessToken(),
+      storefrontCustomerAccessToken:
+        storefront_token_data.data.storefrontCustomerAccessTokenCreate
+          .customerAccessToken,
+      checkoutUrl: context.cart.checkoutUrl,
     },
     {
       headers: {
@@ -33,17 +68,53 @@ export async function loader({context}) {
 
 export default function AccountLayout() {
   /** @type {LoaderReturnData} */
-  const {customer, accessToken} = useLoaderData();
+  const {customer, accessToken, storefrontCustomerAccessToken, checkoutUrl} =
+    useLoaderData();
 
   const heading = customer
     ? customer.firstName
-      ? `Welcome, ${customer.firstName} customerAccessToken ${accessToken}`
+      ? `Welcome, ${customer.firstName} `
       : `Welcome to your account.`
     : 'Account Details';
 
   return (
     <div className="account">
       <h1>{heading}</h1>
+      <pre>customerAccessToken</pre>
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          maxWidth: '50%',
+          overflowWrap: 'break-word',
+        }}
+      >
+        {accessToken}
+      </pre>
+
+      <pre>storefrontCustomerAccessToken</pre>
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          maxWidth: '50%',
+          overflowWrap: 'break-word',
+        }}
+      >
+        {storefrontCustomerAccessToken}
+      </pre>
+
+      <pre>checkoutUrl</pre>
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          maxWidth: '50%',
+          overflowWrap: 'break-word',
+        }}
+      >
+        {checkoutUrl}
+      </pre>
       <br />
       <AccountMenu />
       <br />

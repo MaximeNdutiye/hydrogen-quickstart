@@ -38,3 +38,33 @@ export const CUSTOMER_DETAILS_QUERY = `#graphql
   }
   ${CUSTOMER_FRAGMENT}
 `;
+
+export const CREATE_STOREFRONT_TOKEN = `#graphql
+mutation storefrontCustomerAccessTokenCreate {
+  storefrontCustomerAccessTokenCreate {
+    customerAccessToken
+    userErrors {
+      field
+      message
+    }
+  }
+}  
+`;
+
+export const UPDATE_BUYER_IDENTITY = `#graphql
+mutation updateCartBuyerIdentity($buyerIdentity: CartBuyerIdentityInput!, $cartId: ID!) {
+  cartBuyerIdentityUpdate(buyerIdentity: $buyerIdentity, cartId: $cartId) {
+    cart {
+			id
+			buyerIdentity {
+				email
+				phone
+			}
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
